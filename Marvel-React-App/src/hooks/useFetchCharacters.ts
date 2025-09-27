@@ -12,7 +12,14 @@ interface EnrichedCharacter {
   comicThumbs: ComicThumb[];
 }
 
-export function useFetchCharacters(page: number, itemsPerPage: number) {
+// ✅ In-memory thumbnail cache (lives across hook re-renders)
+const comicThumbCache = new Map<string, ComicThumb>();
+
+export function useFetchCharacters(
+  page: number,
+  itemsPerPage: number,
+  searchTerm: string = ''
+) {
   const [characters, setCharacters] = useState<EnrichedCharacter[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
@@ -24,7 +31,7 @@ export function useFetchCharacters(page: number, itemsPerPage: number) {
       setError(null);
 
       try {
-        const data = await fetchCharacters(page, itemsPerPage);
+        const data = await fetchCharacters(page, itemsPerPage, searchTerm);
         const chars = data.results;
         const total = data.total;
         setTotalPages(Math.ceil(total / itemsPerPage));
@@ -33,10 +40,16 @@ export function useFetchCharacters(page: number, itemsPerPage: number) {
           chars.map(async (char: any) => {
             const thumbs = await Promise.all(
               char.comics.items.slice(0, 2).map(async (comic: any) => {
+                const cachedThumb = comicThumbCache.get(comic.resourceURI);
+                if (cachedThumb) return cachedThumb;
+
                 try {
                   const comicData = await fetchComicByURI(comic.resourceURI);
                   const thumb = comicData.thumbnail;
+
                   if (thumb.path.includes('image_not_available')) return null;
+
+                  comicThumbCache.set(comic.resourceURI, thumb); // ✅ Save in cache
                   return thumb;
                 } catch {
                   return null;
@@ -65,7 +78,7 @@ export function useFetchCharacters(page: number, itemsPerPage: number) {
     };
 
     loadCharacters();
-  }, [page, itemsPerPage]);
+  }, [page, itemsPerPage, searchTerm]);
 
   return {
     characters,

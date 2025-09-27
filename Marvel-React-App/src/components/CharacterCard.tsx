@@ -30,17 +30,19 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ name, comicThumbs }) => {
         width: '150px',
       }}
     >
-      <img
-        src={imageUrl}
-        alt={`${name} comic`}
-        style={{
-          borderRadius: '6px',
-          width: '150px',
-          height: '225px',
-          objectFit: 'cover',
-          marginBottom: '0.5rem',
-        }}
-      />
+    <img
+    src={imageUrl}
+    alt={`${name} comic`}
+    loading="lazy" // 👈 this defers loading until needed
+    style={{
+        borderRadius: '6px',
+        width: '150px',
+        height: '225px',
+        objectFit: 'cover',
+        marginBottom: '0.5rem',
+    }}
+    />
+
       <h3
         style={{
           color: '#f2f2f2',

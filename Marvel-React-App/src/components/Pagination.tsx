@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface PaginationProps {
   currentPage: number;
@@ -11,6 +11,8 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
+  const [inputValue, setInputValue] = useState('');
+
   const buttons = [];
   const maxVisiblePages = 4;
   const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
@@ -41,23 +43,48 @@ const Pagination: React.FC<PaginationProps> = ({
 
   if (endPage < totalPages) buttons.push(<span key="ellipsis-end">...</span>);
 
+  const handleGoToPage = (e: React.FormEvent) => {
+    e.preventDefault();
+    const num = parseInt(inputValue);
+    if (!isNaN(num) && num >= 1 && num <= totalPages) {
+      onPageChange(num);
+      setInputValue('');
+    }
+  };
+
   return (
     <div
-    style={{
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center', // ✅ centers horizontally
-    marginBottom: '1.5rem',
-    flexWrap: 'wrap',
-    gap: '6px',
-    }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '1.5rem',
+        flexWrap: 'wrap',
+        gap: '8px',
+      }}
     >
+      {/* First button */}
+      <button
+        onClick={() => onPageChange(1)}
+        disabled={currentPage === 1}
+        style={{
+          padding: '6px 12px',
+          backgroundColor: '#333',
+          color: '#fff',
+          border: '1px solid #444',
+          borderRadius: '4px',
+          opacity: currentPage === 1 ? 0.4 : 1,
+          cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+        }}
+      >
+        First
+      </button>
 
+      {/* Prev */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         style={{
-          marginRight: '8px',
           padding: '6px 12px',
           backgroundColor: '#333',
           color: '#fff',
@@ -70,13 +97,14 @@ const Pagination: React.FC<PaginationProps> = ({
         Prev
       </button>
 
+      {/* Page buttons */}
       {buttons}
 
+      {/* Next */}
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         style={{
-          marginLeft: '8px',
           padding: '6px 12px',
           backgroundColor: '#333',
           color: '#fff',
@@ -89,11 +117,11 @@ const Pagination: React.FC<PaginationProps> = ({
         Next
       </button>
 
+      {/* Last */}
       <button
         onClick={() => onPageChange(totalPages)}
         disabled={currentPage === totalPages}
         style={{
-          marginLeft: '8px',
           padding: '6px 12px',
           backgroundColor: '#444',
           color: '#fff',
@@ -105,6 +133,31 @@ const Pagination: React.FC<PaginationProps> = ({
       >
         Last
       </button>
+
+      {/* Page X of Y */}
+      <span style={{ color: '#ccc', marginLeft: '12px' }}>
+        Page {currentPage} of {totalPages}
+      </span>
+
+      {/* Go to Page input */}
+      <form onSubmit={handleGoToPage} style={{ marginLeft: '12px' }}>
+        <input
+          type="number"
+          min={1}
+          max={totalPages}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Go to page"
+          style={{
+            width: '90px',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            border: '1px solid #444',
+            backgroundColor: '#1a1a1a',
+            color: '#fff',
+          }}
+        />
+      </form>
     </div>
   );
 };
